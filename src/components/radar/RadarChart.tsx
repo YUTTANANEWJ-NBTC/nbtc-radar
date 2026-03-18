@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import type { TechnologyNode, Sector } from '../../types';
-import { sectors } from '../../data/mockData';
+import type { TechnologyNode } from '../../types';
 import clsx from 'clsx';
 
 interface Props {
@@ -18,53 +17,84 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
   
   // Timeframe radii
   const RADIUS_0_2 = 120;
-  const RADIUS_3_5 = 240;
-  const RADIUS_6_10 = 360;
+  const RADIUS_3_5 = 250;
+  const RADIUS_6_10 = 380;
 
-  // Calculate positions deterministically based on sector and timeframe
+  // Calculate positions deterministically based on sector (top/bottom) and timeframe
   const nodePositions = useMemo(() => {
     const positioned: Record<string, { x: number; y: number }> = {};
     
-    sectors.forEach((sector: Sector, sectorIndex: number) => {
-      const sectorNodes = data.filter(d => d.categoryId === sector.id);
+    const satelliteNodes = data.filter(d => d.categoryId === 'satellite_space');
+    const audioNodes = data.filter(d => d.categoryId === 'audiovisual_media');
+    
+    const positionNodes = (nodes: TechnologyNode[], isTop: boolean) => {
+      const startAngle = isTop ? Math.PI + 0.15 : 0.15;
+      const endAngle = isTop ? 2 * Math.PI - 0.15 : Math.PI - 0.15;
+      const angleRange = endAngle - startAngle;
       
-      // Calculate angle range for this sector
-      const angleStep = (2 * Math.PI) / sectors.length;
-      const startAngle = sectorIndex * angleStep - Math.PI / 2; // Start from top
-      
-      sectorNodes.forEach((node, i) => {
-        // Determine radius based on timeframe
-        let minR = 0;
-        let maxR = 0;
+      nodes.forEach((node, i) => {
+        let minR = 0, maxR = 0;
         switch (node.timeframe) {
           case '0-2': minR = 40; maxR = RADIUS_0_2 - 20; break;
           case '3-5': minR = RADIUS_0_2 + 20; maxR = RADIUS_3_5 - 20; break;
-          case '6-10': minR = RADIUS_3_5 + 20; maxR = RADIUS_6_10 - 20; break;
+          case '6-10': minR = RADIUS_3_5 + 30; maxR = RADIUS_6_10 - 30; break;
         }
         
-        // Spread nodes evenly within their sector angle
-        const nodeAngleStep = angleStep / (sectorNodes.length + 1);
-        const nodeAngle = startAngle + nodeAngleStep * (i + 1);
+        // Stagger distance slightly based on index to avoid perfect circles visually
+        const stagger = (i % 2 === 0) ? -10 : 10;
+        const radius = minR + (maxR - minR) / 2 + stagger;
         
-        // Position roughly in the middle of their timeframe band
-        const radius = minR + (maxR - minR) / 2;
+        const angleStep = angleRange / (nodes.length + 1);
+        const nodeAngle = startAngle + angleStep * (i + 1);
         
         positioned[node.id] = {
           x: CENTER + radius * Math.cos(nodeAngle),
           y: CENTER + radius * Math.sin(nodeAngle),
         };
       });
-    });
+    };
+    
+    positionNodes(satelliteNodes, true);
+    positionNodes(audioNodes, false);
     
     return positioned;
   }, [data]);
 
+  const getImportanceColor = (imp: number) => {
+    switch(imp) {
+      case 5: return '#5a0710';
+      case 4: return '#ce2029';
+      case 3: return '#ea5a5a';
+      case 2: return '#f4979a';
+      default: return '#fadce1';
+    }
+  };
+
+  const getImportanceRadius = (imp: number) => {
+    switch(imp) {
+      case 5: return 14;
+      case 4: return 10;
+      case 3: return 8;
+      case 2: return 6;
+      default: return 4;
+    }
+  };
+
   return (
-    <div className="relative w-full aspect-square max-w-[800px] mx-auto">
+    <div className="relative w-full aspect-square max-w-[900px] mx-auto overflow-hidden rounded-xl bg-gradient-to-br from-rose-200 via-purple-100 to-indigo-200 p-8 shadow-2xl border border-white/40">
       
+      {/* Title */}
+      <div className="absolute top-8 left-8 z-10">
+        <h2 className="text-4xl font-extrabold text-slate-800 tracking-tight flex items-center gap-4">
+          <span className="text-red-600">NBTC</span> 
+          <span className="w-1.5 h-10 bg-red-600 inline-block rounded-full"></span>
+          (Example) 2026 Thailand Emerging<br/>Technology Radar
+        </h2>
+      </div>
+
       <svg 
         viewBox={`0 0 ${SIZE} ${SIZE}`} 
-        className="w-full h-full drop-shadow-2xl"
+        className="w-full h-full drop-shadow-xl mt-12"
       >
         <defs>
           <filter id="glow">
@@ -76,43 +106,33 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
           </filter>
         </defs>
 
+        {/* Top/Bottom Sector Labels */}
+        <text x={CENTER} y={CENTER - RADIUS_6_10 - 20} textAnchor="middle" className="fill-slate-900 text-lg font-bold">กลุ่ม Satellite and Space</text>
+        <text x={CENTER} y={CENTER + RADIUS_6_10 + 35} textAnchor="middle" className="fill-slate-900 text-lg font-bold">กลุ่ม Audiovisual media</text>
+
         {/* Background Circles / Timeframes */}
-        <circle cx={CENTER} cy={CENTER} r={RADIUS_6_10} className="fill-white/40 stroke-white/60" strokeWidth="2" />
-        <circle cx={CENTER} cy={CENTER} r={RADIUS_3_5} className="fill-white/60 stroke-white/80" strokeWidth="2" />
-        <circle cx={CENTER} cy={CENTER} r={RADIUS_0_2} className="fill-white/80 stroke-white" strokeWidth="2" />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS_6_10} className="fill-slate-400/20 stroke-slate-500/20" strokeWidth="1" />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS_3_5} className="fill-white/40 stroke-slate-400/30" strokeWidth="1" />
+        <circle cx={CENTER} cy={CENTER} r={RADIUS_0_2} className="fill-white/70 stroke-slate-300/40" strokeWidth="1" />
 
-        {/* Outer Ring Labels */}
-        <text x={CENTER} y={CENTER - RADIUS_6_10 - 15} textAnchor="middle" className="fill-slate-500 text-xs font-bold tracking-widest uppercase">6 - 10 Years</text>
-        <text x={CENTER} y={CENTER - RADIUS_3_5 - 15} textAnchor="middle" className="fill-slate-600 text-xs font-bold tracking-widest uppercase">3 - 5 Years</text>
-        <text x={CENTER} y={CENTER - RADIUS_0_2 - 15} textAnchor="middle" className="fill-slate-700 text-xs font-bold tracking-widest uppercase">0 - 2 Years</text>
+        {/* Horizontal Split Line */}
+        <line x1={0} y1={CENTER} x2={SIZE} y2={CENTER} className="stroke-slate-900" strokeWidth="4" />
 
-        {/* Sector Background Lines */}
-        {sectors.map((_: Sector, i: number) => {
-          const angle = (i * 2 * Math.PI) / sectors.length - Math.PI / 2;
-          const x2 = CENTER + RADIUS_6_10 * Math.cos(angle);
-          const y2 = CENTER + RADIUS_6_10 * Math.sin(angle);
-          return (
-            <line 
-              key={i} 
-              x1={CENTER} y1={CENTER} x2={x2} y2={y2} 
-              className="stroke-slate-300/50" 
-              strokeWidth="2" 
-              strokeDasharray="4 4"
-            />
-          );
-        })}
+        {/* Timeframe line labels */}
+        <text x={CENTER + RADIUS_0_2 / 2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">ระยะสั้น</text>
+        <text x={CENTER + RADIUS_0_2 + (RADIUS_3_5 - RADIUS_0_2)/2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">ระยะกลาง</text>
+        <text x={CENTER + RADIUS_3_5 + (RADIUS_6_10 - RADIUS_3_5)/2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">ระยะยาว</text>
 
         {/* Nodes */}
         {data.map((node) => {
           const pos = nodePositions[node.id];
           if (!pos) return null;
           
-          const sector = sectors.find((s: Sector) => s.id === node.categoryId);
           const isSelected = selectedNode?.id === node.id;
           const isHovered = hoveredNode === node.id;
           
-          // Node size based on importance (1 to 5)
-          const radius = 6 + (node.importance * 1.5);
+          const radius = getImportanceRadius(node.importance);
+          const color = getImportanceColor(node.importance);
 
           return (
             <g 
@@ -131,7 +151,7 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
                 <circle 
                   r={radius + 8} 
                   fill="none" 
-                  stroke={sector?.color} 
+                  stroke={color} 
                   strokeWidth="2" 
                   className="animate-ping opacity-50"
                   cx="0" cy="0"
@@ -139,43 +159,96 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
               )}
               <circle 
                 r={radius + 4} 
-                fill={sector?.color} 
-                opacity="0.2"
+                fill={color} 
+                opacity="0.1"
                 cx="0" cy="0"
               />
               <circle 
                 r={radius} 
-                fill={sector?.color} 
-                filter="url(#glow)"
+                fill={color} 
                 className="transition-all duration-300"
                 cx="0" cy="0"
               />
               
-              {/* Tooltip text inside SVG (Optional, showing names for larger nodes or on hover) */}
-              {(isHovered || isSelected) && (
-                <text 
-                  y={-(radius + 12)}
-                  textAnchor="middle" 
-                  className="fill-slate-900 text-[13px] font-bold drop-shadow-md pointer-events-none select-none transition-opacity bg-white"
-                >
-                  {node.name}
-                </text>
-              )}
+              {/* Permanent Labels for nodes to match the image style */}
+              <text 
+                x={node.categoryId === 'satellite_space' ? - (radius + 8) : (radius + 8)} 
+                y={4}
+                textAnchor={node.categoryId === 'satellite_space' ? "end" : "start"} 
+                className="fill-slate-900 text-[14px] font-medium drop-shadow-sm pointer-events-none"
+              >
+                {node.name.length > 30 ? (
+                  <>
+                    <tspan x={node.categoryId === 'satellite_space' ? - (radius + 8) : (radius + 8)} dy="-0.6em">
+                      {node.name.substring(0, 30)}
+                    </tspan>
+                    <tspan x={node.categoryId === 'satellite_space' ? - (radius + 8) : (radius + 8)} dy="1.2em">
+                      {node.name.substring(30)}
+                    </tspan>
+                  </>
+                ) : (
+                  node.name
+                )}
+              </text>
             </g>
           );
         })}
       </svg>
       
       {/* Legend overlays */}
-      <div className="absolute top-4 right-4 bg-white/80 backdrop-blur-md border border-white/50 rounded-lg p-4 shadow-lg">
-        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Sectors</h4>
-        <div className="space-y-2">
-          {sectors.map((sector: Sector) => (
-            <div key={sector.id} className="flex items-center gap-2 text-sm text-slate-700 font-medium">
-              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: sector.color }}></span>
-              {sector.name}
+      <div className="absolute right-8 top-32 w-64 rounded-xl overflow-hidden shadow-lg border border-white/20">
+        <div className="bg-gradient-to-b from-indigo-500/80 to-purple-400/80 backdrop-blur-md p-5 text-white">
+          <h4 className="font-bold text-sm mb-3">ระยะเวลา (Timeframe)</h4>
+          <div className="space-y-2 mb-6 text-sm font-medium">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-white/80 border-2 border-white/30 flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full bg-white/20 translate-y-1/2 rounded-b-full"></div>
+              </div>
+              <span>ระยะสั้น 0 - 2 ปี</span>
             </div>
-          ))}
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-white/60 border-2 border-white/30 flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full bg-slate-400/20 translate-y-1/2 rounded-b-full"></div>
+              </div>
+              <span>ระยะกลาง 3 - 5 ปี</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-slate-400/20 border-2 border-slate-400/20 flex items-center justify-center overflow-hidden">
+                <div className="w-full h-full bg-transparent"></div>
+              </div>
+              <span>ระยะยาว 6 - 10 ปี</span>
+            </div>
+          </div>
+
+          <h4 className="font-bold text-sm mb-3">ความสำคัญ (Importance)</h4>
+          <div className="space-y-3 text-sm font-medium">
+            {[
+              { label: 'มีความสำคัญมากที่สุด', score: 5 },
+              { label: 'มีความสำคัญมาก', score: 4 },
+              { label: 'มีความสำคัญ', score: 3 },
+              { label: 'มีความสำคัญน้อย', score: 2 },
+              { label: 'มีความสำคัญน้อยที่สุด', score: 1 }
+            ].map(item => (
+              <div key={item.score} className="flex items-center gap-3">
+                <div className="w-8 flex justify-center">
+                  <div 
+                    className="rounded-full shrink-0" 
+                    style={{ 
+                      backgroundColor: getImportanceColor(item.score),
+                      width: `${getImportanceRadius(item.score) * 1.5}px`,
+                      height: `${getImportanceRadius(item.score) * 1.5}px`
+                    }}
+                  ></div>
+                </div>
+                <div className="flex flex-col">
+                  <span>{item.label}</span>
+                  <div className="flex text-rose-300 text-[10px]">
+                    {Array.from({ length: item.score }).map((_, i) => <span key={i}>★</span>)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       
