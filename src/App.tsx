@@ -53,7 +53,7 @@ function App() {
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex justify-center py-8">
+          <div className="flex-1 flex w-full">
             <AdjustmentView 
               initialData={data} 
               onConfirm={(newData) => {
