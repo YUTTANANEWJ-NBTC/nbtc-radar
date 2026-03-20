@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { RadarChart } from '../radar/RadarChart';
 import { EditableBriefingCard } from './EditableBriefingCard';
 import type { TechnologyNode } from '../../types';
+import clsx from 'clsx';
 
 interface Props {
   initialData: TechnologyNode[];
@@ -13,10 +14,29 @@ export function AdjustmentView({ initialData, onConfirm, onCancel }: Props) {
   const [draftData, setDraftData] = useState<TechnologyNode[]>(initialData);
   const [selectedNode, setSelectedNode] = useState<TechnologyNode | null>(null);
 
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
   const handleNodeUpdate = (updatedNode: TechnologyNode) => {
     setDraftData((prev) => prev.map((n) => (n.id === updatedNode.id ? updatedNode : n)));
     if (selectedNode?.id === updatedNode.id) {
       setSelectedNode(updatedNode);
+    }
+  };
+
+  const handleConfirmClick = () => {
+    setShowPasswordPrompt(true);
+    setPasswordInput('');
+    setPasswordError(false);
+  };
+
+  const handlePasswordSubmit = () => {
+    if (passwordInput === '12345') {
+      setShowPasswordPrompt(false);
+      onConfirm(draftData);
+    } else {
+      setPasswordError(true);
     }
   };
 
@@ -32,7 +52,7 @@ export function AdjustmentView({ initialData, onConfirm, onCancel }: Props) {
             Discard Changes
           </button>
           <button 
-            onClick={() => onConfirm(draftData)}
+            onClick={handleConfirmClick}
             className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold shadow-md transition-colors"
           >
             Confirm Locations & Updates
@@ -59,6 +79,53 @@ export function AdjustmentView({ initialData, onConfirm, onCancel }: Props) {
           onNodeUpdate={handleNodeUpdate} 
         />
       </div>
+
+      {/* Password Prompt Modal */}
+      {showPasswordPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Security Confirmation</h3>
+            <p className="text-sm text-slate-600 mb-6">Enter password to apply your mocked adjustments to the main dashboard.</p>
+            
+            <input 
+              type="password" 
+              autoFocus
+              value={passwordInput}
+              onChange={e => {
+                setPasswordInput(e.target.value);
+                setPasswordError(false);
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') handlePasswordSubmit();
+                if (e.key === 'Escape') setShowPasswordPrompt(false);
+              }}
+              placeholder="Enter password..."
+              className={clsx(
+                "w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all",
+                passwordError ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-purple-500"
+              )}
+            />
+            {passwordError && (
+              <p className="text-red-500 text-sm mt-2 font-medium">Incorrect password. Please try again.</p>
+            )}
+            
+            <div className="flex justify-end gap-3 mt-8">
+              <button 
+                onClick={() => setShowPasswordPrompt(false)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors border border-slate-200"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handlePasswordSubmit}
+                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold shadow-md transition-colors"
+              >
+                Unlock & Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
