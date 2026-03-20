@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from './components/layout/Header';
 import { RadarChart } from './components/radar/RadarChart';
 import { BriefingCard } from './components/dashboard/BriefingCard';
@@ -11,7 +11,22 @@ type ViewMode = 'main' | 'adjust';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('main');
-  const [data, setData] = useState<TechnologyNode[]>(mockData);
+  const [data, setData] = useState<TechnologyNode[]>(() => {
+    const saved = localStorage.getItem('radarData');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return mockData;
+      }
+    }
+    return mockData;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('radarData', JSON.stringify(data));
+  }, [data]);
+
   const [selectedNode, setSelectedNode] = useState<TechnologyNode | null>(null);
 
   return (
