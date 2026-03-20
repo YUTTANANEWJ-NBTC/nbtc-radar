@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import type { TechnologyNode } from '../../types';
 import clsx from 'clsx';
 
@@ -6,10 +6,40 @@ interface Props {
   data: TechnologyNode[];
   selectedNode: TechnologyNode | null;
   onNodeSelect: (node: TechnologyNode) => void;
+  isInteractive?: boolean;
+  onNodeUpdate?: (node: TechnologyNode) => void;
 }
 
-export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
+export function RadarChart({ data, selectedNode, onNodeSelect, isInteractive = false, onNodeUpdate }: Props) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isInteractive || !draggingNodeId || !svgRef.current) return;
+    
+    const CTM = svgRef.current.getScreenCTM();
+    if (!CTM) return;
+    
+    const x = (e.clientX - CTM.e) / CTM.a;
+    const y = (e.clientY - CTM.f) / CTM.d;
+
+    const nodeToUpdate = data.find(n => n.id === draggingNodeId);
+    if (nodeToUpdate && onNodeUpdate) {
+      onNodeUpdate({
+        ...nodeToUpdate,
+        customX: x,
+        customY: y
+      });
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (draggingNodeId && svgRef.current) {
+       svgRef.current.releasePointerCapture(e.pointerId);
+    }
+    setDraggingNodeId(null);
+  };
 
   // SVG coordinates and sizes
   const SIZE = 800;
@@ -94,8 +124,12 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
 
       <div className="relative w-full aspect-square">
         <svg 
+          ref={svgRef}
           viewBox={`0 0 ${SIZE} ${SIZE}`} 
-          className="w-full h-full drop-shadow-xl"
+          className={clsx("w-full h-full drop-shadow-xl", isInteractive && "select-none")}
+          onPointerMove={isInteractive ? handlePointerMove : undefined}
+          onPointerUp={isInteractive ? handlePointerUp : undefined}
+          onPointerCancel={isInteractive ? handlePointerUp : undefined}
         >
           <defs>
             <filter id="glow">
@@ -126,11 +160,17 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
 
           {/* Nodes */}
           {data.map((node) => {
-            const pos = nodePositions[node.id];
-            if (!pos) return null;
+            const calculatedPos = nodePositions[node.id];
+            if (!calculatedPos) return null;
+            
+            const pos = {
+              x: node.customX !== undefined ? node.customX : calculatedPos.x,
+              y: node.customY !== undefined ? node.customY : calculatedPos.y,
+            };
             
             const isSelected = selectedNode?.id === node.id;
             const isHovered = hoveredNode === node.id;
+            const isDragging = draggingNodeId === node.id;
             
             const radius = getImportanceRadius(node.importance);
             const color = getImportanceColor(node.importance);
@@ -139,13 +179,26 @@ export function RadarChart({ data, selectedNode, onNodeSelect }: Props) {
               <g 
                 key={node.id}
                 className={clsx(
-                  "transition-all duration-300 cursor-pointer origin-center outline-none",
-                  isSelected || isHovered ? "scale-110" : "scale-100",
+                  "origin-center outline-none touch-none",
+                  isInteractive ? "cursor-grab" : "cursor-pointer transition-all duration-300",
+                  isInteractive && isDragging ? "cursor-grabbing" : isInteractive ? "transition-all duration-300" : "",
+                  (isSelected || isHovered) && !isDragging ? "scale-110" : "scale-100",
                   isSelected ? "opacity-100 ring" : (selectedNode ? "opacity-40" : "opacity-100")
                 )}
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
-                onClick={() => onNodeSelect(node)}
+                onClick={() => {
+                  if (!isInteractive) onNodeSelect(node);
+                }}
+                onPointerDown={(e) => {
+                  if (!isInteractive) return;
+                  e.stopPropagation();
+                  onNodeSelect(node);
+                  if (svgRef.current) {
+                     svgRef.current.setPointerCapture(e.pointerId);
+                  }
+                  setDraggingNodeId(node.id);
+                }}
                 transform={`translate(${pos.x}, ${pos.y})`}
               >
                 {isSelected && (

@@ -11,6 +11,8 @@ export interface TechnologyNode {
   signals: string[];      // Signals: What's Known?
   implications: string[]; // Implications: So what?
   questions: string[];    // Futures Questions: What If?
+  customX?: number;       // Custom X position overlay
+  customY?: number;       // Custom Y position overlay
 }
 
 export interface Sector {
