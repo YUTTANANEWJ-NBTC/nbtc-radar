@@ -16,7 +16,7 @@ export function BriefingCard({ node }: Props) {
         </div>
         <h3 className="text-xl font-bold text-slate-800 mb-2">Select a Technology</h3>
         <p className="text-slate-500 max-w-sm">
-          Click on any node in the Technology Radar to view its detailed briefing, including signals of change, implications, and future questions.
+          Click on any node in the Technology Radar to view its detailed briefing, including signals of change, implications, and considerations.
         </p>
       </div>
     );
@@ -100,7 +100,7 @@ export function BriefingCard({ node }: Props) {
         <section>
           <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">
             <AlertCircle className="w-5 h-5 text-purple-500" />
-            Futures Questions: What If?
+            Considerations : What if?
           </h3>
           <div className="space-y-3">
             {node.questions.map((q, idx) => (

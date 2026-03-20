@@ -13,15 +13,6 @@ function App() {
       <Header />
       
       <main className="pt-20 pb-8 px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto min-h-[calc(100vh-2rem)] flex flex-col">
-        {/* Top Description */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">2026 Emerging Technology Radar</h2>
-          <p className="text-slate-600 max-w-3xl text-lg">
-            Interactive technology foresight dashboard tracking signals of change across telecommunications, 
-            audiovisual media, and network AI infrastructure.
-          </p>
-        </div>
-
         {/* Dashboard Canvas */}
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
           

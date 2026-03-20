@@ -11,7 +11,7 @@ export function Header() {
             </div>
             <div>
               <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-purple-500 to-blue-500">
-                Future Watch Tower
+                Future Technology Dashboard
               </h1>
               <p className="text-xs text-slate-400 font-medium">NBTC 2026 Technology Radar</p>
             </div>
