@@ -119,7 +119,7 @@ export function RadarChart({ data, sectors, selectedNode, onNodeSelect, isIntera
         <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-800 tracking-tight flex items-center gap-4">
           <span className="text-red-600">NBTC</span> 
           <span className="w-1.5 h-10 bg-red-600 inline-block rounded-full"></span>
-          (Example) 2026 Thailand Emerging<br/>Technology Radar
+          2026 Thailand Emerging<br/>Technology Radar
         </h2>
       </div>
 
