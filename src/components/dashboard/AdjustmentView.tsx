@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { RadarChart } from '../radar/RadarChart';
 import { EditableBriefingCard } from './EditableBriefingCard';
-import type { TechnologyNode } from '../../types';
+import type { TechnologyNode, Sector } from '../../types';
+import { RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 
 interface Props {
   initialData: TechnologyNode[];
+  sectors: Sector[];
   onConfirm: (data: TechnologyNode[]) => void;
   onCancel: () => void;
 }
 
-export function AdjustmentView({ initialData, onConfirm, onCancel }: Props) {
+export function AdjustmentView({ initialData, sectors, onConfirm, onCancel }: Props) {
   const [draftData, setDraftData] = useState<TechnologyNode[]>(initialData);
   const [selectedNode, setSelectedNode] = useState<TechnologyNode | null>(null);
 
@@ -65,6 +67,7 @@ export function AdjustmentView({ initialData, onConfirm, onCancel }: Props) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
         <RadarChart 
           data={draftData}
+          sectors={sectors}
           selectedNode={selectedNode}
           onNodeSelect={setSelectedNode}
           onNodeUpdate={handleNodeUpdate}
@@ -76,8 +79,26 @@ export function AdjustmentView({ initialData, onConfirm, onCancel }: Props) {
       <div className="lg:col-span-5 h-[500px] lg:h-[700px] sticky top-8">
         <EditableBriefingCard 
           node={selectedNode} 
+          sectors={sectors}
           onNodeUpdate={handleNodeUpdate} 
         />
+      </div>
+
+      {/* Floating Clear Selection at Bottom Left */}
+      <div className="fixed bottom-6 left-6 z-50">
+        <button
+          onClick={() => setSelectedNode(null)}
+          disabled={!selectedNode}
+          className={clsx(
+            "flex items-center gap-2 px-5 py-3 rounded-xl shadow-lg border backdrop-blur-md font-semibold text-sm transition-all duration-300",
+            selectedNode
+              ? "bg-white/90 border-slate-300 text-slate-800 hover:bg-slate-100 hover:shadow-xl hover:-translate-y-0.5"
+              : "bg-white/50 border-slate-200 text-slate-400 cursor-not-allowed"
+          )}
+        >
+          <RefreshCw className={clsx("w-4 h-4", selectedNode && "text-blue-500")} /> 
+          Clear Selection
+        </button>
       </div>
 
       {/* Password Prompt Modal */}

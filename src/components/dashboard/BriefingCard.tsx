@@ -1,13 +1,13 @@
 import type { TechnologyNode, Sector } from '../../types';
-import { sectors } from '../../data/mockData';
 import { AlertCircle, Zap, Target, Clock, Activity } from 'lucide-react';
 import clsx from 'clsx';
 
 interface Props {
   node: TechnologyNode | null;
+  sectors: Sector[];
 }
 
-export function BriefingCard({ node }: Props) {
+export function BriefingCard({ node, sectors }: Props) {
   if (!node) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center p-8 text-center bg-white/50 rounded-2xl border border-dashed border-slate-300 shadow-sm">

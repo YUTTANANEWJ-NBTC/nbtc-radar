@@ -3,49 +3,66 @@ import { Header } from './components/layout/Header';
 import { RadarChart } from './components/radar/RadarChart';
 import { BriefingCard } from './components/dashboard/BriefingCard';
 import { AdjustmentView } from './components/dashboard/AdjustmentView';
-import { mockData } from './data/mockData';
+import { mockDataV1, mockDataV2, sectorsV1, sectorsV2 } from './data/mockData';
 import type { TechnologyNode } from './types';
+import { RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 
 type ViewMode = 'main' | 'adjust';
+type Version = 'v1' | 'v2';
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('main');
-  const [isAdjustUnlocked, setIsAdjustUnlocked] = useState(false);
+  const [activeVersion, setActiveVersion] = useState<Version>('v1');
   const [showEntryPrompt, setShowEntryPrompt] = useState(false);
   const [entryPassword, setEntryPassword] = useState('');
   const [entryError, setEntryError] = useState(false);
-  const [data, setData] = useState<TechnologyNode[]>(() => {
-    const saved = localStorage.getItem('radarData');
+  
+  const [v1Data, setV1Data] = useState<TechnologyNode[]>(() => {
+    const saved = localStorage.getItem('radarDataV1');
     if (saved) {
       try {
         return JSON.parse(saved);
       } catch (e) {
-        return mockData;
+        return mockDataV1;
       }
     }
-    return mockData;
+    return mockDataV1;
+  });
+
+  const [v2Data, setV2Data] = useState<TechnologyNode[]>(() => {
+    const saved = localStorage.getItem('radarDataV2');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return mockDataV2;
+      }
+    }
+    return mockDataV2;
   });
 
   useEffect(() => {
-    localStorage.setItem('radarData', JSON.stringify(data));
-  }, [data]);
+    localStorage.setItem('radarDataV1', JSON.stringify(v1Data));
+  }, [v1Data]);
+
+  useEffect(() => {
+    localStorage.setItem('radarDataV2', JSON.stringify(v2Data));
+  }, [v2Data]);
 
   const [selectedNode, setSelectedNode] = useState<TechnologyNode | null>(null);
 
+  const activeData = activeVersion === 'v1' ? v1Data : v2Data;
+  const activeSectors = activeVersion === 'v1' ? sectorsV1 : sectorsV2;
+
   const handleAdjustClick = () => {
-    if (isAdjustUnlocked) {
-      setCurrentView('adjust');
-    } else {
-      setShowEntryPrompt(true);
-      setEntryPassword('');
-      setEntryError(false);
-    }
+    setShowEntryPrompt(true);
+    setEntryPassword('');
+    setEntryError(false);
   };
 
   const submitEntryPassword = () => {
     if (entryPassword === '12345') {
-      setIsAdjustUnlocked(true);
       setShowEntryPrompt(false);
       setCurrentView('adjust');
     } else {
@@ -65,7 +82,8 @@ function App() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
               
               <RadarChart 
-                data={data} 
+                data={activeData} 
+                sectors={activeSectors}
                 selectedNode={selectedNode} 
                 onNodeSelect={setSelectedNode} 
                 isInteractive={false}
@@ -73,15 +91,17 @@ function App() {
             </div>
 
             <div className="lg:col-span-5 h-[500px] lg:h-[700px] sticky top-24">
-              <BriefingCard node={selectedNode} />
+              <BriefingCard node={selectedNode} sectors={activeSectors} />
             </div>
           </div>
         ) : (
           <div className="flex-1 flex w-full">
             <AdjustmentView 
-              initialData={data} 
+              initialData={activeData} 
+              sectors={activeSectors}
               onConfirm={(newData) => {
-                setData(newData);
+                if (activeVersion === 'v1') setV1Data(newData);
+                else setV2Data(newData);
                 setCurrentView('main');
               }}
               onCancel={() => setCurrentView('main')}
@@ -92,26 +112,71 @@ function App() {
       </main>
 
       {/* Floating View Switcher at Bottom Right */}
-      <div className="fixed bottom-6 right-6 flex bg-white/80 backdrop-blur-md p-1.5 rounded-xl shadow-2xl border border-white/60 z-50">
-        <button
-          onClick={() => setCurrentView('main')}
-          className={clsx(
-            "px-6 py-3 font-semibold text-sm rounded-lg transition-all",
-            currentView === 'main' ? "bg-slate-800 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          )}
-        >
-          View Dashboard
-        </button>
-        <button
-          onClick={handleAdjustClick}
-          className={clsx(
-            "px-6 py-3 font-semibold text-sm rounded-lg transition-all",
-            currentView === 'adjust' ? "bg-purple-600 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-          )}
-        >
-          Mockup Adjustments
-        </button>
+      <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-50">
+        {/* Version Switcher */}
+        {currentView === 'main' && (
+          <div className="flex bg-white/80 backdrop-blur-md p-1.5 rounded-xl shadow-xl border border-white/60">
+            <button
+              onClick={() => { setActiveVersion('v1'); setSelectedNode(null); }}
+              className={clsx(
+                "px-5 py-2 font-semibold text-sm rounded-lg transition-all",
+                activeVersion === 'v1' ? "bg-blue-600 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              )}
+            >
+              Version 1 (Original)
+            </button>
+            <button
+              onClick={() => { setActiveVersion('v2'); setSelectedNode(null); }}
+              className={clsx(
+                "px-5 py-2 font-semibold text-sm rounded-lg transition-all",
+                activeVersion === 'v2' ? "bg-rose-600 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              )}
+            >
+              Version 2 (VHTS)
+            </button>
+          </div>
+        )}
+
+        <div className="flex bg-white/80 backdrop-blur-md p-1.5 rounded-xl shadow-2xl border border-white/60">
+          <button
+            onClick={() => setCurrentView('main')}
+            className={clsx(
+              "px-6 py-3 font-semibold text-sm rounded-lg transition-all",
+              currentView === 'main' ? "bg-slate-800 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            )}
+          >
+            View Dashboard
+          </button>
+          <button
+            onClick={handleAdjustClick}
+            className={clsx(
+              "px-6 py-3 font-semibold text-sm rounded-lg transition-all",
+              currentView === 'adjust' ? "bg-purple-600 text-white shadow-md" : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            )}
+          >
+            Mockup Adjustments
+          </button>
+        </div>
       </div>
+
+      {/* Floating Clear Selection at Bottom Left */}
+      {currentView === 'main' && (
+        <div className="fixed bottom-6 left-6 z-50">
+          <button
+            onClick={() => setSelectedNode(null)}
+            disabled={!selectedNode}
+            className={clsx(
+              "flex items-center gap-2 px-5 py-3 rounded-xl shadow-lg border backdrop-blur-md font-semibold text-sm transition-all duration-300",
+              selectedNode
+                ? "bg-white/90 border-slate-300 text-slate-800 hover:bg-slate-100 hover:shadow-xl hover:-translate-y-0.5"
+                : "bg-white/50 border-slate-200 text-slate-400 cursor-not-allowed"
+            )}
+          >
+            <RefreshCw className={clsx("w-4 h-4", selectedNode && "text-blue-500")} /> 
+            Clear Selection
+          </button>
+        </div>
+      )}
 
       {/* Entry Password Prompt Modal */}
       {showEntryPrompt && (

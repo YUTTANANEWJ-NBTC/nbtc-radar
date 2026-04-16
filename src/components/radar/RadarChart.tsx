@@ -1,16 +1,17 @@
 import { useState, useMemo, useRef } from 'react';
-import type { TechnologyNode } from '../../types';
+import type { TechnologyNode, Sector } from '../../types';
 import clsx from 'clsx';
 
 interface Props {
   data: TechnologyNode[];
+  sectors: Sector[];
   selectedNode: TechnologyNode | null;
   onNodeSelect: (node: TechnologyNode) => void;
   isInteractive?: boolean;
   onNodeUpdate?: (node: TechnologyNode) => void;
 }
 
-export function RadarChart({ data, selectedNode, onNodeSelect, isInteractive = false, onNodeUpdate }: Props) {
+export function RadarChart({ data, sectors, selectedNode, onNodeSelect, isInteractive = false, onNodeUpdate }: Props) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -142,8 +143,12 @@ export function RadarChart({ data, selectedNode, onNodeSelect, isInteractive = f
           </defs>
 
           {/* Top/Bottom Sector Labels */}
-          <text x={CENTER} y={CENTER - RADIUS_6_10 - 20} textAnchor="middle" className="fill-slate-900 text-lg font-bold">กลุ่ม Satellite and Space</text>
-          <text x={CENTER} y={CENTER + RADIUS_6_10 + 35} textAnchor="middle" className="fill-slate-900 text-lg font-bold">กลุ่ม Audiovisual media</text>
+          {sectors.find(s => s.id === 'satellite_space') && (
+            <text x={CENTER} y={CENTER - RADIUS_6_10 - 20} textAnchor="middle" className="fill-slate-900 text-lg font-bold">กลุ่ม Satellite and Space</text>
+          )}
+          {sectors.find(s => s.id === 'audiovisual_media') && (
+            <text x={CENTER} y={CENTER + RADIUS_6_10 + 35} textAnchor="middle" className="fill-slate-900 text-lg font-bold">กลุ่ม Audiovisual media</text>
+          )}
 
           {/* Background Circles / Timeframes */}
           <circle cx={CENTER} cy={CENTER} r={RADIUS_6_10} className="fill-slate-400/20 stroke-slate-500/20" strokeWidth="1" />

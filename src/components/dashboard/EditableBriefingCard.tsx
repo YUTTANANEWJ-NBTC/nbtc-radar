@@ -1,20 +1,23 @@
 import { useState } from 'react';
 import type { TechnologyNode, Sector } from '../../types';
-import { sectors } from '../../data/mockData';
-import { AlertCircle, Zap, Target, Clock, Activity, Plus, X } from 'lucide-react';
+import { AlertCircle, Zap, Target, Clock, Activity, Plus, X, Edit2, Check } from 'lucide-react';
 import clsx from 'clsx';
 
 interface Props {
   node: TechnologyNode | null;
+  sectors: Sector[];
   onNodeUpdate: (node: TechnologyNode) => void;
 }
 
-export function EditableBriefingCard({ node, onNodeUpdate }: Props) {
+export function EditableBriefingCard({ node, sectors, onNodeUpdate }: Props) {
   const [newSignal, setNewSignal] = useState('');
   const [newImplication, setNewImplication] = useState('');
   const [newQuestion, setNewQuestion] = useState('');
 
   const [addingField, setAddingField] = useState<'signals' | 'implications' | 'questions' | null>(null);
+  
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingNameValue, setEditingNameValue] = useState('');
 
   if (!node) {
     return (
@@ -75,9 +78,51 @@ export function EditableBriefingCard({ node, onNodeUpdate }: Props) {
               ))}
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight leading-snug">
-            {node.name}
-          </h2>
+          <div className="flex items-center gap-2 group/title w-full mt-2">
+            {isEditingName ? (
+              <div className="flex-1 flex gap-2 items-center">
+                <input 
+                  type="text" 
+                  autoFocus
+                  value={editingNameValue}
+                  onChange={(e) => setEditingNameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      onNodeUpdate({ ...node, name: editingNameValue });
+                      setIsEditingName(false);
+                    }
+                    if (e.key === 'Escape') setIsEditingName(false);
+                  }}
+                  className="w-full text-2xl font-bold text-slate-900 tracking-tight leading-snug border-b-2 border-blue-500 bg-transparent focus:outline-none"
+                />
+                <button 
+                  onClick={() => {
+                    onNodeUpdate({ ...node, name: editingNameValue });
+                    setIsEditingName(false);
+                  }}
+                  className="p-1.5 text-white bg-green-500 hover:bg-green-600 rounded-md transition-colors"
+                >
+                  <Check className="w-5 h-5"/>
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight leading-snug">
+                  {node.name}
+                </h2>
+                <button 
+                  onClick={() => {
+                    setEditingNameValue(node.name);
+                    setIsEditingName(true);
+                  }}
+                  className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-md opacity-0 group-hover/title:opacity-100 transition-all"
+                  title="Edit Technology Name"
+                >
+                  <Edit2 className="w-5 h-5" />
+                </button>
+              </>
+            )}
+          </div>
           <div className="flex items-center gap-4 mt-4 text-sm text-slate-500">
             <div className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />

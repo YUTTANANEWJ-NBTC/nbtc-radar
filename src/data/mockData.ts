@@ -1,11 +1,11 @@
 import type { TechnologyNode, Sector } from '../types';
 
-export const sectors: Sector[] = [
+export const sectorsV1: Sector[] = [
   { id: 'satellite_space', name: 'กลุ่ม Satellite and Space', color: '#1e293b' },
   { id: 'audiovisual_media', name: 'กลุ่ม Audiovisual media', color: '#1e293b' },
 ];
 
-export const mockData: TechnologyNode[] = [
+export const mockDataV1: TechnologyNode[] = [
   {
     id: 'ngso',
     name: 'NGSO, including LEO Satellites and Multi-Orbit model',
@@ -95,5 +95,23 @@ export const mockData: TechnologyNode[] = [
     signals: ['Digital watermarking and C2PA metadata integrated into news.'],
     implications: ['Creates a verified layer of information on the web.'],
     questions: ['Will unverified content be completely filtered out by default?']
+  }
+];
+
+export const sectorsV2: Sector[] = [
+  { id: 'satellite_space', name: 'กลุ่ม Satellite and Space', color: '#1e293b' },
+];
+
+export const mockDataV2: TechnologyNode[] = [
+  ...mockDataV1.filter(node => node.categoryId !== 'audiovisual_media'),
+  {
+    id: 'vhts',
+    name: 'GSO Satellite Broadband Internet (Very High Throughput Satellite - VHTS)',
+    categoryId: 'satellite_space',
+    timeframe: '0-2',
+    importance: 4,
+    signals: [],
+    implications: [],
+    questions: []
   }
 ];
