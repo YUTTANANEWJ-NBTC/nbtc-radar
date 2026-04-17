@@ -5,7 +5,7 @@ import { BriefingCard } from './components/dashboard/BriefingCard';
 import { AdjustmentView } from './components/dashboard/AdjustmentView';
 import { mockDataV1, mockDataV2, sectorsV1, sectorsV2, defaultTimeframeConfig } from './data/mockData';
 import type { TechnologyNode, TimeframeConfig } from './types';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Download } from 'lucide-react';
 import clsx from 'clsx';
 
 type ViewMode = 'main' | 'adjust';
@@ -103,6 +103,37 @@ function App() {
     }
   };
 
+  const handleExportData = () => {
+    const code = `import type { TechnologyNode, Sector, TimeframeConfig } from '../types';
+
+export const defaultTimeframeConfig: TimeframeConfig = ${JSON.stringify(v1Timeframes, null, 2)};
+
+export const sectorsV1: Sector[] = [
+  { id: 'satellite_space', name: 'กลุ่ม Satellite and Space', color: '#1e293b' },
+  { id: 'audiovisual_media', name: 'กลุ่ม Audiovisual media', color: '#1e293b' },
+];
+
+export const mockDataV1: TechnologyNode[] = ${JSON.stringify(v1Data, null, 2)};
+
+export const sectorsV2: Sector[] = [
+  { id: 'satellite_space', name: 'กลุ่ม Satellite and Space', color: '#1e293b' },
+];
+
+export const mockDataV2: TechnologyNode[] = ${JSON.stringify(v2Data, null, 2)};
+`;
+
+    const blob = new Blob([code], { type: 'text/typescript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'mockData.ts';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    alert('ดาวน์โหลดไฟล์ mockData.ts สำเร็จ! \\n\\nนำไฟล์นี้ไปวางทับไฟล์เดิมที่ src/data/mockData.ts เพื่อให้ทุกคนเห็นข้อมูลล่าสุดตรงกันครับ');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-100 to-indigo-100 text-slate-800 font-sans selection:bg-purple-500/30 pb-24">
       <Header />
@@ -196,6 +227,15 @@ function App() {
           >
             Mockup Adjustments
           </button>
+          {currentView === 'main' && (
+            <button
+              onClick={handleExportData}
+              title="Export Data for Universal Update"
+              className="px-4 py-3 font-semibold text-sm rounded-lg transition-all text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 border-l border-slate-200 ml-1 flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" /> Export
+            </button>
+          )}
         </div>
       </div>
 
