@@ -3,7 +3,7 @@ import { Header } from './components/layout/Header';
 import { RadarChart } from './components/radar/RadarChart';
 import { BriefingCard } from './components/dashboard/BriefingCard';
 import { AdjustmentView } from './components/dashboard/AdjustmentView';
-import { mockDataV1, mockDataV2, sectorsV1, sectorsV2, defaultTimeframeConfig } from './data/mockData';
+import { mockDataV1, mockDataV2, sectorsV1, sectorsV2, defaultTimeframeConfig, dataVersion } from './data/mockData';
 import type { TechnologyNode, TimeframeConfig } from './types';
 import { RefreshCw, Download } from 'lucide-react';
 import clsx from 'clsx';
@@ -23,8 +23,9 @@ function App() {
   const [exportError, setExportError] = useState(false);
   
   const [v1Data, setV1Data] = useState<TechnologyNode[]>(() => {
+    const savedVersion = localStorage.getItem('radarDataVersion');
     const saved = localStorage.getItem('radarDataV1');
-    if (saved) {
+    if (saved && savedVersion && Number(savedVersion) >= dataVersion) {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -35,8 +36,9 @@ function App() {
   });
 
   const [v2Data, setV2Data] = useState<TechnologyNode[]>(() => {
+    const savedVersion = localStorage.getItem('radarDataVersion');
     const saved = localStorage.getItem('radarDataV2');
-    if (saved) {
+    if (saved && savedVersion && Number(savedVersion) >= dataVersion) {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -47,8 +49,9 @@ function App() {
   });
 
   const [v1Timeframes, setV1Timeframes] = useState<TimeframeConfig>(() => {
+    const savedVersion = localStorage.getItem('radarDataVersion');
     const saved = localStorage.getItem('timeframesV1');
-    if (saved) {
+    if (saved && savedVersion && Number(savedVersion) >= dataVersion) {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -59,8 +62,9 @@ function App() {
   });
 
   const [v2Timeframes, setV2Timeframes] = useState<TimeframeConfig>(() => {
+    const savedVersion = localStorage.getItem('radarDataVersion');
     const saved = localStorage.getItem('timeframesV2');
-    if (saved) {
+    if (saved && savedVersion && Number(savedVersion) >= dataVersion) {
       try {
         return JSON.parse(saved);
       } catch (e) {
@@ -69,6 +73,10 @@ function App() {
     }
     return defaultTimeframeConfig;
   });
+
+  useEffect(() => {
+    localStorage.setItem('radarDataVersion', dataVersion.toString());
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('radarDataV1', JSON.stringify(v1Data));
@@ -124,6 +132,8 @@ function App() {
 
   const handleExportData = () => {
     const code = `import type { TechnologyNode, Sector, TimeframeConfig } from '../types';
+
+export const dataVersion = ${Date.now()};
 
 export const defaultTimeframeConfig: TimeframeConfig = ${JSON.stringify(v1Timeframes, null, 2)};
 

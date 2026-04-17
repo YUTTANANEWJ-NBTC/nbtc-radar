@@ -1,5 +1,7 @@
 import type { TechnologyNode, Sector, TimeframeConfig } from '../types';
 
+export const dataVersion = 1;
+
 export const defaultTimeframeConfig: TimeframeConfig = {
   "shortLine": "ระยะสั้น",
   "shortLegend": "ระยะสั้น 0 - 2 ปี",
