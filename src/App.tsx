@@ -17,6 +17,10 @@ function App() {
   const [showEntryPrompt, setShowEntryPrompt] = useState(false);
   const [entryPassword, setEntryPassword] = useState('');
   const [entryError, setEntryError] = useState(false);
+
+  const [showExportPrompt, setShowExportPrompt] = useState(false);
+  const [exportPassword, setExportPassword] = useState('');
+  const [exportError, setExportError] = useState(false);
   
   const [v1Data, setV1Data] = useState<TechnologyNode[]>(() => {
     const saved = localStorage.getItem('radarDataV1');
@@ -100,6 +104,21 @@ function App() {
       setCurrentView('adjust');
     } else {
       setEntryError(true);
+    }
+  };
+
+  const handleExportClick = () => {
+    setShowExportPrompt(true);
+    setExportPassword('');
+    setExportError(false);
+  };
+
+  const submitExportPassword = () => {
+    if (exportPassword === '12345') {
+      setShowExportPrompt(false);
+      handleExportData();
+    } else {
+      setExportError(true);
     }
   };
 
@@ -229,7 +248,7 @@ export const mockDataV2: TechnologyNode[] = ${JSON.stringify(v2Data, null, 2)};
           </button>
           {currentView === 'main' && (
             <button
-              onClick={handleExportData}
+              onClick={handleExportClick}
               title="Export Data for Universal Update"
               className="px-4 py-3 font-semibold text-sm rounded-lg transition-all text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 border-l border-slate-200 ml-1 flex items-center gap-2"
             >
@@ -299,6 +318,53 @@ export const mockDataV2: TechnologyNode[] = ${JSON.stringify(v2Data, null, 2)};
                 className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold shadow-md transition-colors"
               >
                 Unlock
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Export Password Prompt Modal */}
+      {showExportPrompt && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Export Data</h3>
+            <p className="text-sm text-slate-600 mb-6">Enter password to download the updated data.</p>
+            
+            <input 
+              type="password" 
+              autoFocus
+              value={exportPassword}
+              onChange={e => {
+                setExportPassword(e.target.value);
+                setExportError(false);
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') submitExportPassword();
+                if (e.key === 'Escape') setShowExportPrompt(false);
+              }}
+              placeholder="Enter password..."
+              className={clsx(
+                "w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all",
+                exportError ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-emerald-500"
+              )}
+            />
+            {exportError && (
+              <p className="text-red-500 text-sm mt-2 font-medium">Incorrect password. Please try again.</p>
+            )}
+            
+            <div className="flex justify-end gap-3 mt-8">
+              <button 
+                onClick={() => setShowExportPrompt(false)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-colors border border-slate-200"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={submitExportPassword}
+                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-md transition-colors"
+              >
+                Download
               </button>
             </div>
           </div>
