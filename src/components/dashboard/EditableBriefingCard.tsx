@@ -19,6 +19,9 @@ export function EditableBriefingCard({ node, sectors, onNodeUpdate }: Props) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingNameValue, setEditingNameValue] = useState('');
 
+  const [isEditingTimeframe, setIsEditingTimeframe] = useState(false);
+  const [editingTimeframeValue, setEditingTimeframeValue] = useState('');
+
   if (!node) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center p-8 text-center bg-white/50 rounded-2xl border border-dashed border-slate-300 shadow-sm">
@@ -124,9 +127,50 @@ export function EditableBriefingCard({ node, sectors, onNodeUpdate }: Props) {
             )}
           </div>
           <div className="flex items-center gap-4 mt-4 text-sm text-slate-500">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 group/timeframe">
               <Clock className="w-4 h-4" />
-              <span>Timeframe: <strong className="text-slate-700">{node.timeframe} Years</strong></span>
+              <span>Timeframe: </span>
+              {isEditingTimeframe ? (
+                <div className="flex gap-2 items-center">
+                  <input 
+                    type="text"
+                    autoFocus
+                    value={editingTimeframeValue}
+                    onChange={(e) => setEditingTimeframeValue(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        onNodeUpdate({ ...node, displayTimeframe: editingTimeframeValue });
+                        setIsEditingTimeframe(false);
+                      }
+                      if (e.key === 'Escape') setIsEditingTimeframe(false);
+                    }}
+                    className="w-32 font-bold text-slate-700 tracking-tight border-b-2 border-blue-500 bg-transparent focus:outline-none"
+                  />
+                  <button 
+                    onClick={() => {
+                      onNodeUpdate({ ...node, displayTimeframe: editingTimeframeValue });
+                      setIsEditingTimeframe(false);
+                    }}
+                    className="p-1 text-white bg-green-500 hover:bg-green-600 rounded-md transition-colors"
+                  >
+                    <Check className="w-3 h-3"/>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <strong className="text-slate-700">{node.displayTimeframe || `${node.timeframe} Years`}</strong>
+                  <button
+                    onClick={() => {
+                      setEditingTimeframeValue(node.displayTimeframe || `${node.timeframe} Years`);
+                      setIsEditingTimeframe(true);
+                    }}
+                    className="p-1 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-md opacity-0 group-hover/timeframe:opacity-100 transition-all"
+                    title="Edit Timeframe Text"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

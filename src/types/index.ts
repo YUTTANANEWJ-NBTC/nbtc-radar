@@ -16,6 +16,7 @@ export interface TechnologyNode {
   name: string;
   categoryId: string; // Refers to Sector
   timeframe: Timeframe;
+  displayTimeframe?: string;
   importance: Importance;
   signals: string[];      // Signals: What's Known?
   implications: string[]; // Implications: So what?

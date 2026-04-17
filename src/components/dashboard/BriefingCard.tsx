@@ -55,7 +55,7 @@ export function BriefingCard({ node, sectors }: Props) {
           <div className="flex items-center gap-4 mt-4 text-sm text-slate-500">
             <div className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
-              <span>Timeframe: <strong className="text-slate-700">{node.timeframe} Years</strong></span>
+              <span>Timeframe: <strong className="text-slate-700">{node.displayTimeframe || `${node.timeframe} Years`}</strong></span>
             </div>
           </div>
         </div>
