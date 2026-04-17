@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { RadarChart } from '../radar/RadarChart';
 import { EditableBriefingCard } from './EditableBriefingCard';
-import type { TechnologyNode, Sector } from '../../types';
+import type { TechnologyNode, Sector, TimeframeConfig } from '../../types';
 import { RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 
 interface Props {
   initialData: TechnologyNode[];
+  initialTimeframes: TimeframeConfig;
   sectors: Sector[];
-  onConfirm: (data: TechnologyNode[]) => void;
+  onConfirm: (data: TechnologyNode[], timeframes: TimeframeConfig) => void;
   onCancel: () => void;
 }
 
-export function AdjustmentView({ initialData, sectors, onConfirm, onCancel }: Props) {
+export function AdjustmentView({ initialData, initialTimeframes, sectors, onConfirm, onCancel }: Props) {
   const [draftData, setDraftData] = useState<TechnologyNode[]>(initialData);
+  const [draftTimeframes, setDraftTimeframes] = useState<TimeframeConfig>(initialTimeframes);
   const [selectedNode, setSelectedNode] = useState<TechnologyNode | null>(null);
 
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
@@ -36,7 +38,7 @@ export function AdjustmentView({ initialData, sectors, onConfirm, onCancel }: Pr
   const handlePasswordSubmit = () => {
     if (passwordInput === '12345') {
       setShowPasswordPrompt(false);
-      onConfirm(draftData);
+      onConfirm(draftData, draftTimeframes);
     } else {
       setPasswordError(true);
     }
@@ -68,9 +70,11 @@ export function AdjustmentView({ initialData, sectors, onConfirm, onCancel }: Pr
         <RadarChart 
           data={draftData}
           sectors={sectors}
+          timeframes={draftTimeframes}
           selectedNode={selectedNode}
           onNodeSelect={setSelectedNode}
           onNodeUpdate={handleNodeUpdate}
+          onTimeframesUpdate={setDraftTimeframes}
           isInteractive={true}
         />
       </div>

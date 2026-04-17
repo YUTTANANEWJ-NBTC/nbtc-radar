@@ -3,8 +3,8 @@ import { Header } from './components/layout/Header';
 import { RadarChart } from './components/radar/RadarChart';
 import { BriefingCard } from './components/dashboard/BriefingCard';
 import { AdjustmentView } from './components/dashboard/AdjustmentView';
-import { mockDataV1, mockDataV2, sectorsV1, sectorsV2 } from './data/mockData';
-import type { TechnologyNode } from './types';
+import { mockDataV1, mockDataV2, sectorsV1, sectorsV2, defaultTimeframeConfig } from './data/mockData';
+import type { TechnologyNode, TimeframeConfig } from './types';
 import { RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -42,6 +42,30 @@ function App() {
     return mockDataV2;
   });
 
+  const [v1Timeframes, setV1Timeframes] = useState<TimeframeConfig>(() => {
+    const saved = localStorage.getItem('timeframesV1');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return defaultTimeframeConfig;
+      }
+    }
+    return defaultTimeframeConfig;
+  });
+
+  const [v2Timeframes, setV2Timeframes] = useState<TimeframeConfig>(() => {
+    const saved = localStorage.getItem('timeframesV2');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return defaultTimeframeConfig;
+      }
+    }
+    return defaultTimeframeConfig;
+  });
+
   useEffect(() => {
     localStorage.setItem('radarDataV1', JSON.stringify(v1Data));
   }, [v1Data]);
@@ -50,10 +74,19 @@ function App() {
     localStorage.setItem('radarDataV2', JSON.stringify(v2Data));
   }, [v2Data]);
 
+  useEffect(() => {
+    localStorage.setItem('timeframesV1', JSON.stringify(v1Timeframes));
+  }, [v1Timeframes]);
+
+  useEffect(() => {
+    localStorage.setItem('timeframesV2', JSON.stringify(v2Timeframes));
+  }, [v2Timeframes]);
+
   const [selectedNode, setSelectedNode] = useState<TechnologyNode | null>(null);
 
   const activeData = activeVersion === 'v1' ? v1Data : v2Data;
   const activeSectors = activeVersion === 'v1' ? sectorsV1 : sectorsV2;
+  const activeTimeframes = activeVersion === 'v1' ? v1Timeframes : v2Timeframes;
 
   const handleAdjustClick = () => {
     setShowEntryPrompt(true);
@@ -84,6 +117,7 @@ function App() {
               <RadarChart 
                 data={activeData} 
                 sectors={activeSectors}
+                timeframes={activeTimeframes}
                 selectedNode={selectedNode} 
                 onNodeSelect={setSelectedNode} 
                 isInteractive={false}
@@ -98,10 +132,16 @@ function App() {
           <div className="flex-1 flex w-full">
             <AdjustmentView 
               initialData={activeData} 
+              initialTimeframes={activeTimeframes}
               sectors={activeSectors}
-              onConfirm={(newData) => {
-                if (activeVersion === 'v1') setV1Data(newData);
-                else setV2Data(newData);
+              onConfirm={(newData, newTimeframes) => {
+                if (activeVersion === 'v1') {
+                  setV1Data(newData);
+                  setV1Timeframes(newTimeframes);
+                } else {
+                  setV2Data(newData);
+                  setV2Timeframes(newTimeframes);
+                }
                 setCurrentView('main');
               }}
               onCancel={() => setCurrentView('main')}

@@ -2,6 +2,15 @@ export type Timeframe = '0-2' | '3-5' | '6-10';
 
 export type Importance = 1 | 2 | 3 | 4 | 5; // 1: Least Important, 5: Most Important
 
+export interface TimeframeConfig {
+  shortLine: string;
+  shortLegend: string;
+  mediumLine: string;
+  mediumLegend: string;
+  longLine: string;
+  longLegend: string;
+}
+
 export interface TechnologyNode {
   id: string;
   name: string;

@@ -1,4 +1,13 @@
-import type { TechnologyNode, Sector } from '../types';
+import type { TechnologyNode, Sector, TimeframeConfig } from '../types';
+
+export const defaultTimeframeConfig: TimeframeConfig = {
+  shortLine: "ระยะสั้น",
+  shortLegend: "ระยะสั้น 0 - 2 ปี",
+  mediumLine: "ระยะกลาง",
+  mediumLegend: "ระยะกลาง 3 - 5 ปี",
+  longLine: "ระยะยาว",
+  longLegend: "ระยะยาว 6 - 10 ปี"
+};
 
 export const sectorsV1: Sector[] = [
   { id: 'satellite_space', name: 'กลุ่ม Satellite and Space', color: '#1e293b' },

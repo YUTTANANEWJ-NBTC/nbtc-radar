@@ -1,17 +1,19 @@
 import { useState, useMemo, useRef } from 'react';
-import type { TechnologyNode, Sector } from '../../types';
+import type { TechnologyNode, Sector, TimeframeConfig } from '../../types';
 import clsx from 'clsx';
 
 interface Props {
   data: TechnologyNode[];
   sectors: Sector[];
+  timeframes: TimeframeConfig;
   selectedNode: TechnologyNode | null;
   onNodeSelect: (node: TechnologyNode) => void;
   isInteractive?: boolean;
   onNodeUpdate?: (node: TechnologyNode) => void;
+  onTimeframesUpdate?: (newTimeframes: TimeframeConfig) => void;
 }
 
-export function RadarChart({ data, sectors, selectedNode, onNodeSelect, isInteractive = false, onNodeUpdate }: Props) {
+export function RadarChart({ data, sectors, timeframes, selectedNode, onNodeSelect, isInteractive = false, onNodeUpdate, onTimeframesUpdate }: Props) {
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -159,9 +161,9 @@ export function RadarChart({ data, sectors, selectedNode, onNodeSelect, isIntera
           <line x1={0} y1={CENTER} x2={SIZE} y2={CENTER} className="stroke-slate-900" strokeWidth="4" />
 
           {/* Timeframe line labels */}
-          <text x={CENTER + RADIUS_0_2 / 2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">ระยะสั้น</text>
-          <text x={CENTER + RADIUS_0_2 + (RADIUS_3_5 - RADIUS_0_2)/2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">ระยะกลาง</text>
-          <text x={CENTER + RADIUS_3_5 + (RADIUS_6_10 - RADIUS_3_5)/2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">ระยะยาว</text>
+          <text x={CENTER + RADIUS_0_2 / 2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">{timeframes.shortLine}</text>
+          <text x={CENTER + RADIUS_0_2 + (RADIUS_3_5 - RADIUS_0_2)/2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">{timeframes.mediumLine}</text>
+          <text x={CENTER + RADIUS_3_5 + (RADIUS_6_10 - RADIUS_3_5)/2} y={CENTER - 8} textAnchor="middle" className="fill-slate-800 text-sm font-semibold">{timeframes.longLine}</text>
 
           {/* Nodes */}
           {data.map((node) => {
@@ -262,23 +264,91 @@ export function RadarChart({ data, sectors, selectedNode, onNodeSelect, isIntera
           <div>
             <h4 className="font-bold text-sm mb-4 uppercase tracking-widest text-indigo-100">ระยะเวลา (Timeframe)</h4>
             <div className="space-y-3 text-sm font-medium">
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-white/80 border-2 border-white/30 flex items-center justify-center overflow-hidden">
-                  <div className="w-full h-full bg-white/20 translate-y-1/2 rounded-b-full"></div>
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-white/80 border-2 border-white/30 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-full h-full bg-white/20 translate-y-1/2 rounded-b-full"></div>
+                  </div>
+                  {isInteractive ? (
+                    <input
+                      type="text"
+                      value={timeframes.shortLegend}
+                      onChange={(e) => onTimeframesUpdate?.({ ...timeframes, shortLegend: e.target.value })}
+                      className="bg-indigo-900/40 border border-indigo-300/30 rounded px-2 py-0.5 text-sm w-36 focus:outline-none focus:ring-1"
+                    />
+                  ) : (
+                    <span>{timeframes.shortLegend}</span>
+                  )}
                 </div>
-                <span>ระยะสั้น 0 - 2 ปี</span>
+                {isInteractive && (
+                  <div className="flex items-center gap-3 pl-[36px]">
+                    <span className="text-xs text-indigo-300/80">Line text:</span>
+                    <input
+                      type="text"
+                      value={timeframes.shortLine}
+                      onChange={(e) => onTimeframesUpdate?.({ ...timeframes, shortLine: e.target.value })}
+                      className="bg-indigo-900/40 border border-indigo-300/30 rounded px-2 py-0.5 text-xs w-24 focus:outline-none focus:ring-1"
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-white/60 border-2 border-white/30 flex items-center justify-center overflow-hidden">
-                  <div className="w-full h-full bg-slate-400/20 translate-y-1/2 rounded-b-full"></div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-white/60 border-2 border-white/30 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-full h-full bg-slate-400/20 translate-y-1/2 rounded-b-full"></div>
+                  </div>
+                  {isInteractive ? (
+                    <input
+                      type="text"
+                      value={timeframes.mediumLegend}
+                      onChange={(e) => onTimeframesUpdate?.({ ...timeframes, mediumLegend: e.target.value })}
+                      className="bg-indigo-900/40 border border-indigo-300/30 rounded px-2 py-0.5 text-sm w-36 focus:outline-none focus:ring-1"
+                    />
+                  ) : (
+                    <span>{timeframes.mediumLegend}</span>
+                  )}
                 </div>
-                <span>ระยะกลาง 3 - 5 ปี</span>
+                {isInteractive && (
+                  <div className="flex items-center gap-3 pl-[36px]">
+                    <span className="text-xs text-indigo-300/80">Line text:</span>
+                    <input
+                      type="text"
+                      value={timeframes.mediumLine}
+                      onChange={(e) => onTimeframesUpdate?.({ ...timeframes, mediumLine: e.target.value })}
+                      className="bg-indigo-900/40 border border-indigo-300/30 rounded px-2 py-0.5 text-xs w-24 focus:outline-none focus:ring-1"
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-slate-400/20 border-2 border-slate-400/20 flex items-center justify-center overflow-hidden">
-                  <div className="w-full h-full bg-transparent"></div>
+
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 rounded-full bg-slate-400/20 border-2 border-slate-400/20 flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="w-full h-full bg-transparent"></div>
+                  </div>
+                  {isInteractive ? (
+                    <input
+                      type="text"
+                      value={timeframes.longLegend}
+                      onChange={(e) => onTimeframesUpdate?.({ ...timeframes, longLegend: e.target.value })}
+                      className="bg-indigo-900/40 border border-indigo-300/30 rounded px-2 py-0.5 text-sm w-36 focus:outline-none focus:ring-1"
+                    />
+                  ) : (
+                    <span>{timeframes.longLegend}</span>
+                  )}
                 </div>
-                <span>ระยะยาว 6 - 10 ปี</span>
+                {isInteractive && (
+                  <div className="flex items-center gap-3 pl-[36px]">
+                    <span className="text-xs text-indigo-300/80">Line text:</span>
+                    <input
+                      type="text"
+                      value={timeframes.longLine}
+                      onChange={(e) => onTimeframesUpdate?.({ ...timeframes, longLine: e.target.value })}
+                      className="bg-indigo-900/40 border border-indigo-300/30 rounded px-2 py-0.5 text-xs w-24 focus:outline-none focus:ring-1"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>
